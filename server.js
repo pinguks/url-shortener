@@ -6,7 +6,7 @@ const app = express();
 const routes = require("./routes");
 
 app.use(express.json());
-app.use("/api", routes);
+app.use("/", routes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "client/build")));
