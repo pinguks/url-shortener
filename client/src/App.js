@@ -37,7 +37,7 @@ class App extends Component {
 
     this.setState({ inputText: "" }, () => {
       axios
-        .post("/api/", { url: inputText })
+        .post("/", { url: inputText })
         .then(res => {
           this.setState(state => {
             return {
