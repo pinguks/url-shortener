@@ -2,11 +2,13 @@ import "./App.css";
 import React, { Component } from "react";
 import axios from "axios";
 
-import { CopyToClipboard } from "react-copy-to-clipboard";
+import Header from "./components/Header";
+import Form from "./components/Form";
+import List from "./components/List";
 
 class App extends Component {
   state = {
-    shortenedLinks: [],
+    links: [],
     inputText: "",
     inputPlaceholder: "Shorten your link"
   };
@@ -14,16 +16,13 @@ class App extends Component {
   componentDidMount() {
     const shortenedLinks = localStorage.getItem("shortenedLinks");
 
-    if (shortenedLinks !== null) {
-      this.setState({ shortenedLinks: JSON.parse(shortenedLinks) });
+    if (shortenedLinks) {
+      this.setState({ links: JSON.parse(shortenedLinks) });
     }
   }
 
   savetoLocalStorage = () => {
-    localStorage.setItem(
-      "shortenedLinks",
-      JSON.stringify(this.state.shortenedLinks)
-    );
+    localStorage.setItem("shortenedLinks", JSON.stringify(this.state.links));
   };
 
   onInputChange = e => {
@@ -35,66 +34,40 @@ class App extends Component {
 
     const { inputText } = this.state;
 
-    this.setState({ inputText: "" }, () => {
-      axios
-        .post("/", { url: inputText })
-        .then(res => {
-          this.setState(state => {
-            return {
-              shortenedLinks: [...state.shortenedLinks, res.data]
-            };
-          }, this.savetoLocalStorage);
-        })
-        .catch(err => {
-          this.setState({
-            inputText: "",
-            inputPlaceholder: err.response.data.error
-          });
+    this.setState({ inputText: "" }, async () => {
+      try {
+        const res = await axios.post("/", { originalUrl: inputText });
+
+        this.setState(
+          {
+            links: [...this.state.links, res.data],
+            inputPlaceholder: "Shorten your link"
+          },
+          this.savetoLocalStorage
+        );
+      } catch (error) {
+        this.setState({
+          inputPlaceholder: error.response.data.error
         });
+      }
     });
   };
 
   render() {
+    const { links, inputPlaceholder, inputText } = this.state;
+
     return (
       <div className="App">
-        <header>
-          <img
-            src="https://tinyurl.com/siteresources/images/tinyurl_logo.png"
-            alt="tinyurl logo"
-          />
-          <p>Making long URLs usable!</p>
-        </header>
+        <Header />
         <main>
           <div className="container">
-            <form onSubmit={this.onFormSubmit}>
-              <input
-                type="text"
-                placeholder={this.state.inputPlaceholder}
-                value={this.state.inputText}
-                onChange={this.onInputChange}
-              />
-              <button type="submit">Shorten</button>
-            </form>
-            <div className="List">
-              {this.state.shortenedLinks.map((link, index) => {
-                return (
-                  <div key={index} className="List-item">
-                    <p className="OriginalUrl">{link.originalUrl}</p>
-                    <a
-                      rel="noopener noreferrer"
-                      href={link.shortenedUrl}
-                      target="_blank"
-                      className="ShortenedUrl"
-                    >
-                      {link.shortenedUrl}
-                    </a>
-                    <CopyToClipboard text={link.shortenedUrl}>
-                      <button className="List-btn">Copy</button>
-                    </CopyToClipboard>
-                  </div>
-                );
-              })}
-            </div>
+            <Form
+              onFormSubmit={this.onFormSubmit}
+              inputPlaceholder={inputPlaceholder}
+              inputText={inputText}
+              onInputChange={this.onInputChange}
+            />
+            <List links={links} />
           </div>
         </main>
       </div>
