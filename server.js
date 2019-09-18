@@ -6,7 +6,7 @@ const app = express();
 const routes = require("./routes");
 
 app.use(express.json());
-app.use("/", routes);
+app.use("/api", routes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "client/build")));
@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 mongoose.connect(
-  process.env.MONGODB,
+  "mongodb+srv://admin:admin@url-short-xofqg.mongodb.net/urlshortener",
   { useNewUrlParser: true, useUnifiedTopology: true },
   err => {
     if (err) throw err;

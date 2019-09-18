@@ -10,12 +10,14 @@ function ListItem({ originalUrl, shortenedUrl }) {
       <a
         className="ShortenedUrl"
         rel="noopener noreferrer"
-        href={`/${shortenedUrl}`}
+        href={`/redirect/${shortenedUrl}`}
         target="_blank"
       >
         {`/${shortenedUrl}`}
       </a>
-      <CopyToClipboard text={`${window.location.origin}/${shortenedUrl}`}>
+      <CopyToClipboard
+        text={`${window.location.origin}/redirect/${shortenedUrl}`}
+      >
         <button className="List-btn">Copy</button>
       </CopyToClipboard>
     </div>

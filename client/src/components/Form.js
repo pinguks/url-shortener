@@ -1,17 +1,37 @@
 import React from "react";
+import { connect } from "react-redux";
 
-function Form({ onFormSubmit, inputPlaceholder, inputText, onInputChange }) {
+import { setInputText, saveLinkToDB } from "../actions";
+
+function Form({ inputPlaceholder, inputText, setInputText, saveLinkToDB }) {
+  const onFormSubmit = e => {
+    e.preventDefault();
+
+    saveLinkToDB(inputText);
+    setInputText("");
+  };
+
   return (
     <form onSubmit={onFormSubmit}>
       <input
         type="text"
         placeholder={inputPlaceholder}
         value={inputText}
-        onChange={onInputChange}
+        onChange={e => setInputText(e.target.value)}
       />
       <button type="submit">Shorten</button>
     </form>
   );
 }
 
-export default Form;
+const mapStateToProps = state => {
+  return {
+    inputText: state.inputText,
+    inputPlaceholder: state.inputPlaceholder
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  { setInputText, saveLinkToDB }
+)(Form);

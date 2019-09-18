@@ -1,4 +1,9 @@
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+
 const Url = require("../models/Url");
+const User = require("../models/User");
+
 const { isURL } = require("validator");
 const generateShortUrl = require("../utils/generateShortUrl");
 
@@ -18,16 +23,23 @@ exports.generateShortUrlAndSaveToDB = async (req, res) => {
   do {
     const exists = await Url.findOne({ shortenedUrl });
 
-    if (exists) {
-      shortenedUrl = generateShortUrl();
-    } else {
-      isNotUnique = false;
-    }
+    if (exists) shortenedUrl = generateShortUrl();
+    else isNotUnique = false;
   } while (isNotUnique);
 
   // save to db and send
 
-  const newUrl = await Url.create({ originalUrl, shortenedUrl });
+  let newUrl;
+
+  if (req.user) {
+    newUrl = await Url.create({
+      originalUrl,
+      shortenedUrl,
+      user: req.user._id
+    });
+  } else {
+    newUrl = await Url.create({ originalUrl, shortenedUrl });
+  }
 
   res.json({
     originalUrl: newUrl.originalUrl,
@@ -44,4 +56,51 @@ exports.getLongUrlAndRedirect = async (req, res) => {
   }
 
   res.redirect(url.originalUrl);
+};
+
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (user) {
+    const passwordMatches = await bcrypt.compare(password, user.password);
+
+    if (passwordMatches) {
+      const token = jwt.sign({ id: user.id }, "secrett");
+
+      res.json({ token });
+      return;
+    }
+  }
+
+  res.status(400).json({ error: "User email/password do not match." });
+};
+
+exports.register = async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    const user = await User.create({ email, password });
+
+    const token = jwt.sign({ id: user.id }, "secrett");
+
+    res.json({ token });
+    return;
+  }
+
+  res.status(400).json({ error: "User already exists, please log in." });
+};
+
+exports.getUserLinks = async (req, res) => {
+  if (!req.user) {
+    res.json({ error: "Please login." });
+    return;
+  }
+
+  const links = await Url.find({ user: req.user._id });
+
+  res.json(links);
 };

@@ -2,10 +2,18 @@ const Router = require("express").Router();
 
 const {
   generateShortUrlAndSaveToDB,
-  getLongUrlAndRedirect
+  getLongUrlAndRedirect,
+  login,
+  register,
+  getUserLinks
 } = require("../controllers");
 
-Router.post("/", generateShortUrlAndSaveToDB);
-Router.get("/:url", getLongUrlAndRedirect);
+const auth = require("../middlewares/auth");
+
+Router.post("/", auth, generateShortUrlAndSaveToDB);
+Router.get("/redirect/:url", getLongUrlAndRedirect);
+Router.post("/login", login);
+Router.post("/register", register);
+Router.get("/links", auth, getUserLinks);
 
 module.exports = Router;
