@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 mongoose.connect(
-  "mongodb+srv://admin:admin@url-short-xofqg.mongodb.net/urlshortener",
+  process.env.MONGODB,
   { useNewUrlParser: true, useUnifiedTopology: true },
   err => {
     if (err) throw err;
